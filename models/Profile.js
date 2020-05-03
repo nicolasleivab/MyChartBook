@@ -26,14 +26,17 @@ const experienceSchema = new mongoose.Schema({
 });
 
 const educationSchema = new mongoose.Schema({
-  title: {
+  degree: {
     type: String,
   },
-  institution: {
+  school: {
     type: String,
   },
   year: {
     type: Date,
+  },
+  fielOfStudy: {
+    type: String,
   },
 });
 
