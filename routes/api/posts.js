@@ -150,4 +150,62 @@ router.put("/unlike/:id", auth, async (req, res) => {
   }
 });
 
+// @route  PUT api/posts/comment/:id
+// @desc   Add comment to a post
+// @access Private
+router.put("/comment/:id", auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    const post = await Post.findById(req.params.id);
+
+    const newComment = {
+      text: req.body.text,
+      username: user.username,
+      avatar: user.avatar,
+      user: req.user.id,
+    };
+
+    post.comments.unshift(newComment);
+    post.save();
+    res.json(post.comments);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server Error");
+  }
+});
+
+// @route  DELETE api/posts/comment/:id/:comment_id
+// @desc   Delete comment
+// @access Private
+router.delete("/comment/:id/:comment_id", auth, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+
+    //pull out comment
+    const comment = post.comments.find(
+      (comment) => comment.id === req.params.comment_id
+    );
+    // check if comment exists
+    if (!comment) {
+      return res.status(404).json({ msg: "Comment not found" });
+    }
+    //check user
+    if (comment.user.toString() !== req.user.id) {
+      return res.status(401).json({ msg: "User not authorized" });
+    }
+
+    // Get and remove index
+    const removeIndex = post.comments.map((comment) =>
+      comment.user.toString().indexOf(req.user.id)
+    );
+    post.comments.splice(removeIndex, 1);
+
+    post.save();
+    res.json(post.comments);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server Error");
+  }
+});
+
 module.exports = router;
