@@ -4,9 +4,10 @@
   "description": "social network for traders",
   "main": "src/server.js",
   "scripts": {
-    "start:build": "tsc -w",
-    "start:run": "nodemon build/server",
-    "server": "concurrently npm:start:*"
+    "build": "tsc",
+    "watch": "tsc -w",
+    "start": "nodemon build/server",
+    "server": "npm run build && concurrently \"npm run watch\" \"npm run start\""
   },
   "repository": {
     "type": "git",
