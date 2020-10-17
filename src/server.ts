@@ -1,3 +1,5 @@
+import { Request, Response } from 'express';
+
 const express = require("express");
 const connectDB = require("./config/db");
 
@@ -9,7 +11,7 @@ connectDB();
 // init middleware
 app.use(express.json({ extended: false }));
 
-app.get("/", (req, res) => res.send("API running..."));
+app.get("/", (req: Request, res: Response) => res.send("API running..."));
 
 // Define routes
 app.use("/api/users", require("./routes/api/users"));
