@@ -1,5 +1,6 @@
 import { Request } from 'express';
 
+// routes interfaces
 export interface RequestWithUser extends Request {
   user: { [key: string]: string | number };
 }
@@ -39,3 +40,5 @@ export interface ProfileFields {
   education: {};
   social: {};
 }
+
+// mongoose models interfaces
