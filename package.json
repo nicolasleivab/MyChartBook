@@ -2,10 +2,10 @@
   "name": "mychartbook",
   "version": "1.0.0",
   "description": "social network for traders",
-  "main": "server.js",
+  "main": "src/server.js",
   "scripts": {
-    "start": "node server",
-    "server": "nodemon server"
+    "start": "node src/server",
+    "server": "nodemon src/server"
   },
   "repository": {
     "type": "git",
