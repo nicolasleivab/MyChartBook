@@ -1,10 +1,8 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
+import { RequestWithUser } from '../types';
 
+const config = require("config");
 const jwt = require("jsonwebtoken");
-
-interface RequestWithUser extends Request {
-  user: string | number,
-}
 
 module.exports = function (req: RequestWithUser, res: Response, next: NextFunction) {
   // Get token from header
