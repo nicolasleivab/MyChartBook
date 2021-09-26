@@ -1,16 +1,16 @@
 import { Request, Response } from 'express';
 import {
-  RequestUserAndBody,
-  RequestWithParams,
-  RequestUserAndParams,
-  RequestUserBodyAndParams,
+  BodyRequest,
+  UserRequest,
+  ParamsRequest,
+  IUserId,
+  IPost,
 } from '../../types';
 
 const express = require('express');
 const router = express.Router();
 const auth = require('../../middleware/auth');
 const User = require('../../models/User');
-const Profile = require('../../models/Profile');
 const Post = require('../../models/Post');
 const { check, validationResult } = require('express-validator');
 
@@ -20,7 +20,7 @@ const { check, validationResult } = require('express-validator');
 router.post(
   '/',
   [auth, [check('text', 'Text is required').not().isEmpty()]],
-  async (req: RequestUserAndBody, res: Response) => {
+  async (req: UserRequest<IUserId> & BodyRequest<IPost>, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -39,7 +39,7 @@ router.post(
       const post = await newPost.save();
 
       res.json(post);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err.message);
       res.status(500).send('Server Error');
     }
@@ -54,7 +54,7 @@ router.get('/', auth, async (req: Request, res: Response) => {
     const posts = await Post.find().sort({ date: -1 });
 
     res.json(posts);
-  } catch (err) {
+  } catch (err: any) {
     console.error(err.message);
     res.status(500).send('Server Error');
   }
@@ -63,7 +63,7 @@ router.get('/', auth, async (req: Request, res: Response) => {
 // @route  GET api/posts/:id
 // @desc   Get post by id
 // @access Private
-router.get('/:id', auth, async (req: RequestWithParams, res: Response) => {
+router.get('/:id', auth, async (req: ParamsRequest, res: Response) => {
   try {
     const post = await Post.findById(req.params.id);
 
@@ -72,7 +72,7 @@ router.get('/:id', auth, async (req: RequestWithParams, res: Response) => {
     }
 
     res.json(post);
-  } catch (err) {
+  } catch (err: any) {
     console.error(err.message);
     if (err.kind === 'ObjectId') {
       return res.status(404).json({ msg: 'Post not found' });
@@ -87,7 +87,7 @@ router.get('/:id', auth, async (req: RequestWithParams, res: Response) => {
 router.delete(
   '/:id',
   auth,
-  async (req: RequestUserAndParams, res: Response) => {
+  async (req: UserRequest<IUserId> & ParamsRequest, res: Response) => {
     try {
       const post = await Post.findById(req.params.id);
       //check post
@@ -102,7 +102,7 @@ router.delete(
       await post.remove();
 
       res.json({ msg: 'Post removed' });
-    } catch (err) {
+    } catch (err: any) {
       console.error(err.message);
       if (err.kind === 'ObjectId') {
         return res.status(404).json({ msg: 'Post not found' });
@@ -118,7 +118,7 @@ router.delete(
 router.put(
   '/like/:id',
   auth,
-  async (req: RequestUserAndParams, res: Response) => {
+  async (req: UserRequest<IUserId> & ParamsRequest, res: Response) => {
     try {
       const post = await Post.findById(req.params.id);
       //check if post has already been liked by this user
@@ -132,7 +132,7 @@ router.put(
       post.likes.unshift({ user: req.user.id });
       await post.save();
       res.json(post.likes);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err.message);
       res.status(500).send('Server Error');
     }
@@ -145,7 +145,7 @@ router.put(
 router.put(
   '/unlike/:id',
   auth,
-  async (req: RequestUserAndParams, res: Response) => {
+  async (req: UserRequest<IUserId> & ParamsRequest, res: Response) => {
     try {
       const post = await Post.findById(req.params.id);
       //check if post has not already been liked by this user
@@ -163,7 +163,7 @@ router.put(
 
       await post.save();
       res.json(post.likes);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err.message);
       res.status(500).send('Server Error');
     }
@@ -176,7 +176,10 @@ router.put(
 router.put(
   '/comment/:id',
   auth,
-  async (req: RequestUserBodyAndParams, res: Response) => {
+  async (
+    req: UserRequest<IUserId> & BodyRequest<IPost> & ParamsRequest,
+    res: Response
+  ) => {
     try {
       const user = await User.findById(req.user.id).select('-password');
       const post = await Post.findById(req.params.id);
@@ -191,7 +194,7 @@ router.put(
       post.comments.unshift(newComment);
       post.save();
       res.json(post.comments);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err.message);
       res.status(500).send('Server Error');
     }
@@ -204,7 +207,7 @@ router.put(
 router.delete(
   '/comment/:id/:comment_id',
   auth,
-  async (req: RequestUserAndParams, res: Response) => {
+  async (req: UserRequest<IUserId> & ParamsRequest, res: Response) => {
     try {
       const post = await Post.findById(req.params.id);
 
@@ -229,7 +232,7 @@ router.delete(
 
       post.save();
       res.json(post.comments);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err.message);
       res.status(500).send('Server Error');
     }

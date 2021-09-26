@@ -1,4 +1,7 @@
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+import { IPost } from '../types';
+
+type IPostSchema = IPost & mongoose.Document;
 
 const PostSchema = new mongoose.Schema({
   user: {
@@ -51,4 +54,4 @@ const PostSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model('post', PostSchema);
+module.exports = mongoose.model<IPostSchema>('post', PostSchema);

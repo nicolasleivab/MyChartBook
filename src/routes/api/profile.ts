@@ -1,10 +1,12 @@
 import { Request, Response } from 'express';
 import {
-  RequestUserAndBody,
-  RequestWithParams,
-  RequestUserAndParams,
-  RequestWithUser,
-  ProfileFields,
+  UserRequest,
+  BodyRequest,
+  ParamsRequest,
+  IUserId,
+  IProfileFields,
+  IEducation,
+  IExperience,
 } from '../../types';
 
 const express = require('express');
@@ -17,7 +19,7 @@ const { check, validationResult } = require('express-validator');
 // @route  GET api/profile/me
 // @desc   Get current user's profile
 // @access Private
-router.get('/me', auth, async (req: RequestWithUser, res: Response) => {
+router.get('/me', auth, async (req: UserRequest<IUserId>, res: Response) => {
   try {
     const profile = await Profile.findOne({
       user: req.user.id,
@@ -30,7 +32,7 @@ router.get('/me', auth, async (req: RequestWithUser, res: Response) => {
     }
     //send profile if exists
     res.json(profile);
-  } catch (err) {
+  } catch (err: any) {
     console.error(err.message);
     res.status(500).send('Server Error');
   }
@@ -48,7 +50,10 @@ router.post(
       check('skills', 'Skills is required').not().isEmpty(),
     ],
   ],
-  async (req: RequestUserAndBody, res: Response) => {
+  async (
+    req: UserRequest<IUserId> & BodyRequest<IProfileFields>,
+    res: Response
+  ) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -67,7 +72,7 @@ router.post(
     } = req.body;
 
     //build profile object
-    const profileFields = <ProfileFields>{};
+    const profileFields = <IProfileFields>{};
 
     profileFields.user = req.user.id;
     if (company) profileFields.company = company;
@@ -98,7 +103,7 @@ router.post(
       profile = new Profile(profileFields);
       await profile.save();
       res.json(profile);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err.message);
       res.status(500).send('Server Error');
     }
@@ -116,7 +121,7 @@ router.get('/', async (req: Request, res: Response) => {
       'avatar',
     ]);
     res.json(profiles);
-  } catch (err) {
+  } catch (err: any) {
     console.error(err.message);
     res.status(500).send('Server Error');
   }
@@ -125,7 +130,7 @@ router.get('/', async (req: Request, res: Response) => {
 // @route  GET api/profile/user/:user_id
 // @desc   Get user's profile by id
 // @access Public
-router.get('/user/:user_id', async (req: RequestWithParams, res: Response) => {
+router.get('/user/:user_id', async (req: ParamsRequest, res: Response) => {
   try {
     const profile = await Profile.findOne({
       user: req.params.user_id, //get user id from url params
@@ -134,7 +139,7 @@ router.get('/user/:user_id', async (req: RequestWithParams, res: Response) => {
       return res.status(400).json('Profile not found');
     }
     res.json(profile);
-  } catch (err) {
+  } catch (err: any) {
     console.error(err.message);
     if (err.kind == 'ObjectId') {
       return res.status(400).json('Profile not found'); // for not valid objectids
@@ -146,7 +151,7 @@ router.get('/user/:user_id', async (req: RequestWithParams, res: Response) => {
 // @route  DELETE api/profile
 // @desc   Delete profile, user and posts
 // @access Private
-router.delete('/', auth, async (req: RequestWithUser, res: Response) => {
+router.delete('/', auth, async (req: UserRequest<IUserId>, res: Response) => {
   try {
     // @todo - remove user's posts
     // Remove profile
@@ -154,7 +159,7 @@ router.delete('/', auth, async (req: RequestWithUser, res: Response) => {
     // Remove user
     await User.findOneAndRemove({ _id: req.user.id });
     res.json({ msg: 'User removed' });
-  } catch (err) {
+  } catch (err: any) {
     console.error(err.message);
     res.status(500).send('Server Error');
   }
@@ -173,21 +178,17 @@ router.put(
       check('from', 'From date is required').not().isEmpty(),
     ],
   ],
-  async (req: RequestUserAndBody, res: Response) => {
+  async (
+    req: UserRequest<IUserId> & BodyRequest<IExperience>,
+    res: Response
+  ) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const {
-      title,
-      company,
-      location,
-      from,
-      to,
-      current,
-      description,
-    } = req.body;
+    const { title, company, location, from, to, current, description } =
+      req.body;
 
     const newExp = {
       title,
@@ -207,7 +208,7 @@ router.put(
       await profile.save();
 
       res.json(profile);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err.message);
       res.status(500).send('Server Error');
     }
@@ -220,7 +221,7 @@ router.put(
 router.delete(
   '/experience/:exp_id',
   auth,
-  async (req: RequestUserAndParams, res: Response) => {
+  async (req: UserRequest<IUserId> & ParamsRequest, res: Response) => {
     try {
       const profile = await Profile.findOne({ user: req.user.id });
 
@@ -234,7 +235,7 @@ router.delete(
       await profile.save();
 
       res.json(profile);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err.message);
       res.status(500).send('Server Error');
     }
@@ -253,7 +254,10 @@ router.put(
       check('degree', 'Degree is required').not().isEmpty(),
     ],
   ],
-  async (req: RequestUserAndBody, res: Response) => {
+  async (
+    req: UserRequest<IUserId> & BodyRequest<IEducation>,
+    res: Response
+  ) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -276,7 +280,7 @@ router.put(
       await profile.save();
 
       res.json(profile);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err.message);
       res.status(500).send('Server Error');
     }
@@ -289,7 +293,7 @@ router.put(
 router.delete(
   '/education/:edu_id',
   auth,
-  async (req: RequestUserAndParams, res: Response) => {
+  async (req: UserRequest<IUserId> & ParamsRequest, res: Response) => {
     try {
       const profile = await Profile.findOne({ user: req.user.id });
 
@@ -303,7 +307,7 @@ router.delete(
       await profile.save();
 
       res.json(profile);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err.message);
       res.status(500).send('Server Error');
     }

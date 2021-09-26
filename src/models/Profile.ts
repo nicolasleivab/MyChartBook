@@ -1,4 +1,7 @@
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+import { IProfileFields } from '../types';
+
+type IProfileFieldsSchema = IProfileFields & mongoose.Document;
 
 const experienceSchema = new mongoose.Schema({
   title: {
@@ -88,4 +91,4 @@ const ProfileSchema = new mongoose.Schema({
   social: socialSchema,
 });
 
-module.exports = mongoose.model('profile', ProfileSchema);
+module.exports = mongoose.model<IProfileFieldsSchema>('profile', ProfileSchema);

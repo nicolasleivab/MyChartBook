@@ -1,4 +1,7 @@
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
+import { IUserId } from '../types';
+
+type IUserSchema = IUserId & mongoose.Document;
 
 const UserSchema = new mongoose.Schema({
   name: {
@@ -28,4 +31,4 @@ const UserSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model('user', UserSchema);
+module.exports = mongoose.model<IUserSchema>('user', UserSchema);
